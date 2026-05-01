@@ -19,6 +19,7 @@ console.log("🔥 Firebase Config:", firebaseConfig);
 
 // Firebaseを初期化
 const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
 // 他のファイル（SnsApp.jsxなど）でログイン機能とデータベースを使えるように「export」する
 export const auth = getAuth(app);

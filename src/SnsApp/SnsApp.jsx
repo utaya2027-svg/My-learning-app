@@ -2,7 +2,8 @@ import { useState , useEffect } from 'react'; // ReactのuseState機能を呼び
 import './SnsApp.css'; 
 import { auth, db } from '../firebase';
 import { signOut } from 'firebase/auth';
-import { collection ,  addDoc , serverTimestamp , onSnapshot , query , orderBy, doc,updateDoc,arrayUnion,arrayRemove} from 'firebase/firestore';
+import { collection ,  addDoc , serverTimestamp , onSnapshot , query , orderBy, doc,updateDoc,arrayUnion,arrayRemove, deleteDoc} from 'firebase/firestore';
+
 
 
 export default function SnsApp() {
@@ -13,25 +14,70 @@ export default function SnsApp() {
     const [activeCommnetPostId,setActiveCommnetPostId] = useState(null); //どの投稿のコメント欄を開いているか
     const [commentText,setCommnetText] = useState(""); //入力中のコメント
 
+    const [selectedFiles , setSelectedFiles] = useState([]); //選択された画像
+    const [isPosting , setIsPosting] = useState(false); //投稿中フラグ
+
+
+    //ファイル選択とバリエーション
+    const handleFileChange = (e) => {
+        const files = Array.from(e.target.files);
+
+        //最大枚数の制限
+        if (files.length + selectedFiles.length > 4){
+            alert("画像は最大４枚です。");
+            return;
+        }
+
+        //容量制限
+        const Max_Size = 200 * 1024 * 1024;
+        if (files.some(f => f.size > Max_Size)){
+            alert("200MBを超えるファイルは投稿できません。");
+            return;
+        }
+
+        setSelectedFiles([...selectedFiles, ...files]);
+    };
 
     //投稿時の処理
     const handlePostSubmit = async (e) => {
 
         console.log("🟢 投稿ボタンがクリックされました！入力内容:", postText);
         
-        if(e) e.preventDefault(); //フォーム送信画面のリロードを防ぐ
-        if (!postText.trim()) 
+        if(e && typeof e.preventDefault === "function") e.preventDefault(); //フォーム送信画面のリロードを防ぐ
+        if (!postText.trim() && selectedFiles.length === 0) {
 
             console.log("🔴 テキストが空っぽなので処理を止めます");
 
             return;
+        }
         
         try {
 
-            console.log("🟡 Firebaseに保存を開始します...");
+            let imageUrls = [];
 
+            //画像がある場合のみColudinalyへアップロード
+            if(selectedFiles.length > 0){
+                const uploadPromises = selectedFiles.map(async (file) => {
+                    const formData = new FormData();
+                    formData.append("file" , file);
+                    formData.append("upload_preset" , import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
+
+                    const res = await fetch(
+                        `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/upload`,
+                        { method : "POST", body : formData}
+                    );
+                    const data = await res.json();
+                    return data.secure_url;
+                });
+                imageUrls = await Promise.all(uploadPromises);
+            }
+
+            console.log("🟡 Firebaseに保存を開始します...");
+            
+            //FireStoreへ保存
             await addDoc(collection(db , "posts"), {
                 text : postText,
+                imageUrls : imageUrls,
                 userName : auth.currentUser?.displayName || "名無しさん" , //ログイン中のユーザ名
                 authorId : auth.currentUser?.uid || "",//投稿者のUID
                 likes : 0,
@@ -49,11 +95,30 @@ export default function SnsApp() {
         } catch (error){
             console.error("投稿エラー",error);
             alert("投稿に失敗しました");
+        } finally {
+            setIsPosting(false);
         }
 
-    }
+    };
 
-        //いいねを推した時の処理
+    //投稿削除処理
+    const handleDeletePost = async (postId) => {
+        //キャンセル確認のダイアログ
+        const isConfirmed = window.confirm("本当に投稿を削除しますか？");
+        //キャンセルの場合、処理を止める
+        if(!isConfirmed) {
+            return;
+        }
+
+        //OKの場合Firebaseから削除
+        try {
+            await deleteDoc(doc(db,"posts",postId));
+            console.log("削除が完了しました。");
+        } catch(error) {
+            console.error("投稿削除エラー".error);
+        }
+    } 
+    //いいねを推した時の処理
         const handleLikeToggle = async(post) => {
             const postRef = doc(db,"posts",post.id);
             const currentUserId = auth.currentUser.uid;
@@ -89,7 +154,7 @@ export default function SnsApp() {
                 });
                 setCommnetText(""); //送信したら入力欄を空に
             } catch (error) {
-                console.error("コメントエラー",eroor);
+                console.error("コメントエラー",error);
             }
         };
 
@@ -194,7 +259,7 @@ export default function SnsApp() {
     const searchcategories = ['カメラ', '旅行', 'グルメ', 'ファッション', 'スポーツ', '音楽', '映画', 'アート', 'テクノロジー', 'ペット'];
 
     return (
-        <div className={`sns-container ${isDarkMode ? 'dark-mode' : ''}`}>
+        <div className={`sns-container ${isDarkMode ? 'dark-mode' : ''}`} style={{position : "absolute"}}>
 
 
 
@@ -222,37 +287,55 @@ export default function SnsApp() {
 
                         {filteredPosts.map((post) => (
                             <div key={post.id} className="post-card">
-                                <div className="post-header">
-                                    <div className="user-icon"></div>
-                                    <span className="user-name">{post.userName || post.author || "名無しさん"}</span>
-                                </div>
-                                <div className="post-image-placeholder"></div>
-                                <div className="post-text" style={{ padding: "10px 15px 5px", fontSize: "15px" }}>
-                                    <span className="user-name" style={{ marginRight: "8px" }}>{post.userName || post.author || "名無しさん"}</span> {post.text}</div>
-                                <div className="post-action" style={{ padding: "5px 15px", borderBottom: "none" }}>
-                                    <span className="action-item" onClick={() => handleLikeToggle(post)} style={{cursor: "pointer", color : (post.likedUsers && post.likedUsers.includes(auth.currentUser?.uid)) ? "red" : "white"}}>
-                                        {(post.likedUsers && post.likedUsers.includes(auth.currentUser?.uid)) ? "❤️" : "🤍"}
-                                        {hiddenLikes ? "" : (post.likedUsers?.length || 0)}
-                                    </span>
-                                    <span className="action-item" onClick={() => setActiveCommnetPostId(post.id)} style={{cursor : "pointer"}}>💬 {post.commentList?.length || 0}</span>
-                                </div>
-                                {post.dummyCommnet && (
-                                    <div className='post-single-commnet' style={{padding : "0 15px 10px", fontSize : "13px", color : "#333333"}}>
-                                        <span style={{ fontWeight : "bold", marginRight : "6px"}}>{post.dummyCommnet.user}</span>
-                                        {post.dummyCommnet.text}
+                                <div className="post-header" style={{display : "flex",alignItems : "center",justifyContent : "space-between"}}>
+                                    <div style={{display : "flex", alignItems : "center"}}>
+                                        <div className="user-icon"></div>
+                                        <span className="user-name">{post.userName || post.author || "名無しさん"}</span>
                                     </div>
+                                {/*自分の投稿のみ削除可*/}
+                                {post.authorId === auth.currentUser?.uid &&(
+                                    <span onClick={() => handleDeletePost(post.id)}
+                                    style={{cursor: "pointer",fontSize : "12px", color : "#999", padding : "5px"}}>🗑️ 削除</span>
                                 )}
-                                
-                                <div className="post-tags" style={{padding : "0 15px 15px"}}>
-                                    {post.tags && post.tags.map((tag, index) => (
-                                        <span key={index} className="post-tag">{tag}</span>
+                            </div>
+
+                            {/*Cloudinaryから所得したファイルの表示 */}
+                            {post.imageUrls && post.imageUrls.length > 0 &&(
+                                <div style={{display: "grid", gridTemplateColumns: post.imageUrls.length === 1 ? "1fr" : "1fr 1fr", gap: "2px", margin: "10px 15px", borderRadius: "15px", overflow: "hidden",border: "1px solid #333"}}>
+                                    {post.imageUrls.map((url, i) =>(
+                                        <img key={i} src={url} alt="" style={{width : "100%" , height : post.imageUrls.length <= 2 ? "250px": "150px" , objectFit : "cover" }}/>
                                     ))}
                                 </div>
+                            )}
+
+                            {/*投稿テキスト */}
+                            <div className="post-text" style={{ padding: "10px 15px 5px", fontSize: "15px" }}>
+                                <span className="user-name" style={{ marginRight: "8px" }}>
+                                    {post.userName || post.author || "名無しさん"}
+                                </span> 
+                                {post.text}
                             </div>
-                        ))}
-                    </main>
-                </>
-            )}
+
+                            {/*いいね　・　コメント */}
+                            <div className="post-action" style={{ padding: "5px 15px", borderBottom: "none" }}>
+                                <span className="action-item" onClick={() => handleLikeToggle(post)} style={{cursor: "pointer", color : (post.likedUsers && post.likedUsers.includes(auth.currentUser?.uid)) ? "red" : "white"}}>
+                                    {(post.likedUsers && post.likedUsers.includes(auth.currentUser?.uid)) ? "❤️" : "🤍"}
+                                    {hiddenLikes ? "" : (post.likedUsers?.length || 0)}
+                                </span>
+                                <span className="action-item" onClick={() => setActiveCommnetPostId(post.id)} style={{cursor : "pointer"}}>💬 {post.commentList?.length || 0}</span>
+                            </div>
+
+                            {/*タグ表示 */}
+                            <div className="post-tags" style={{padding : "0 15px 15px"}}>
+                                {post.tags && post.tags.map((tag, index) => (
+                                    <span key={index} className="post-tag">{tag}</span>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </main>
+            </>
+        )}
 
 
     {/* 検索画面(currentTabがsearchのときに表示) */}
@@ -286,17 +369,47 @@ export default function SnsApp() {
             {currentTab === 'create' && (
                 <main className="sns-main-content sns-create-content">
                     <div className="create-header">
-                        <span className="create-cancel" onClick={() => setCurrentTab("home")}>キャンセル</span>
-                        <h2 className="create-title">新規投稿</h2>
-                        {/* ここでは投稿完了の処理は実装せず、完了ボタンを押すとホーム画面に戻るだけの動作にする */}
-                        <span className="create-post-btn" onClick={handlePostSubmit} style={{cursor : "pointer", color : "#1a73e8", fontWeight : "bold"}}>投稿</span>
+                        <span className="create-cancel" onClick={() => { setPostText(""); setSelectedFiles([]);setCurrentTab("home"); }}>キャンセル</span>
+                        <button 
+                           className="create-post-btn" 
+                           onClick={handlePostSubmit} 
+                           disabled={isPosting} 
+                           style={{backgroundColor : isPosting ? "#8ecdf8" : "#1d9bf0",
+                                   color : "white",
+                                   border : "none",
+                                   borderRadius : "20px",
+                                   padding : "6px 16px",
+                                   fontWeight : "bold"}}
+                        >
+                            {isPosting ? "送信中" : "投稿する"}
+                        </button>
                     </div>
 
-                    <textarea className="create-textarea" placeholder="今の気持ちをシェアしよう..." rows="6" value={postText} onChange={(e) => setPostText(e.target.value)}></textarea>
+                    <div style={{display : "flex", padding : "15px", gap : "10px"}}>
+                        <div className="user-icon" style={{width : "40px",height : "40px", flexShrink : 0}}></div>
+                        <textarea className="create-textarea" placeholder="今の気持ちをシェアしよう..." style={{ border : "none", fontSize : "18px", width : "100%", outline : "none", background : "transparent"}}
+                        value={postText}
+                        onChange={(e) => setPostText(e.target.value)}/>
+                    </div>
 
-                    <div className="create-image-add">
-                        <span className="add-icon">📷</span>
-                        <span>画像を追加</span>
+                    {/*画像プレビュー */}
+                    <div style={{display : "grid", gridTemplateColumns : "1fr 1fr",gap : "10px", padding : "0 15px 15px 65px"}}>
+                        {selectedFiles.map((file,index) => (
+                            <div key={index} style={{position : "relative"}}>
+                                <img src={URL.createObjectURL(file)} alt="" style={{width: "100%", height : "150px", objectFit : "cover",borderRadius : "15px"}} />
+                                <button onClick={() => setSelectedFiles(selectedFiles.filter((_,i) => i !== index))} style={{position : "absolute", top : "5px", right: "5px", background : "rgba(0,0,0,0.5)",color : "white",border : "none",borderRadius : "50%",width : "25px", height : "25px"}}></button>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/*ツールバー */}
+                    <div style={{padding : "10px 15px", borderTop : "1px solid #333",display : "flex", gap : "20px", color : "#1d9df0"}}>
+                        <label style={{cursor : "pointer"}}>
+                            <input type="file" multiple accept="image/* , video/*" onChange={handleFileChange} hidden />
+                            <span style={{ fontSize : "20px"}}>📷</span>
+                        </label>
+                        <span style={{ fontSize : "20px"}}>🎥</span>
+                        <span style={{ fontSize : "20px"}}>📊</span>
                     </div>
                 </main>
             )}
@@ -410,12 +523,12 @@ export default function SnsApp() {
             if (!activePost) return null;
 
             return(
-                <div style={{position : "fixed", top : 0, left : 0,width : "100%", height : "100%", backgroundColor : "rgba(0,0,0,0.5)",zIndex : 1000, display : "flex",flexDirection : "column", justifyContent : "flex-end"}}>
+                <div style={{position : "absolute", top : 0, left : 0,width : "100%", height : "100%", backgroundColor : "rgba(0,0,0,0.5)",zIndex : 1000, display : "flex",flexDirection : "column", justifyContent : "flex-end", alignItems : "center"}}>
                     {/* モーダルの上の黒い部分を押したら閉じる*/}
-                    <div style={{flex : 1}} onClick={() => setActiveCommnetPostId(null)}></div>
+                    <div style={{flex : 1, width : "100%"}} onClick={() => setActiveCommnetPostId(null)}></div>
 
                     {/*ボトムシート全体 */}
-                    <div style={{backgroundColor : "white", height : "70%", borderTopLeftRadius : "20px",borderTopRightRadius : "20px", display : "flex", flexDirection : "column", paddingBottom : "env(safe-area-inset-bottom)"}}>
+                    <div style={{backgroundColor : "white",width : "100%",maxWidth : "480px", height : "70%", borderTopLeftRadius : "20px",borderTopRightRadius : "20px", display : "flex", flexDirection : "column", paddingBottom : "env(safe-area-inset-bottom)"}}>
 
                         {/*ヘッダー */}
                         <div style={{padding : "15px", textAlign : "center", borderBottom : "1px solid #ddd", position : "relative"}}>
@@ -449,7 +562,7 @@ export default function SnsApp() {
                     </div>
                 </div>
             )
-        })}
+        })()}
     </div>
         
     );
