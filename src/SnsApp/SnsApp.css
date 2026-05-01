@@ -1,0 +1,559 @@
+/* SNSアプリ全体の枠組み */
+.sns-container {
+    max-width: 400px;
+    height: 100vh;
+    margin: 0 auto;
+    background-color: #fff;
+    display: flex; /* フレックスボックスを使用して子要素を縦に配置 */
+    flex-direction: column; /* 子要素を縦に並べる */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    color: #333;
+    font-family: sans-serif;
+}
+
+/* ヘッダーエリアの枠組み */
+.sns-header {
+    height: 50px;
+    border-bottom: 1px solid #eeeeee;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    flex-shrink: 0; /* 画面が狭くなってもヘッダーが縮まないようにする */
+}
+
+/* メインコンテンツエリア */
+.sns-main-content {
+    flex: 1; /* ヘッダーとフッターナビゲーション以外のスペースを占める */
+    overflow-y: auto;
+    padding: 16px;
+}
+
+/* フッターナビゲーション */
+.sns-bottom-nav {
+  width: 100%;
+  height: 60px;
+  background-color: #eeeeee;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-shrink: 0; /* 画面が狭くなってもフッターナビゲーションが縮まないようにする */
+}
+
+/* ナビゲーションアイコン */
+.nav-item {
+    font-size: 24px;
+    cursor: pointer;
+}
+
+/* ヘッダーエリアの枠組み */
+.sns-header {
+    height: 50px;
+    border-bottom: 1px solid #eeeeee;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+}
+
+/*　タグを横並びにしてはみ出たらスクロールさせる設定 */
+.tag-list {
+    display: flex;
+    gap: 20px; /* タグの間隔 */
+    overflow-x: auto; /* 横スクロールを有効にする */
+    white-space: nowrap; /* 文字の改行を無効にする */
+
+    /* スクロールバーを見えなくする*/
+    -ms-text-overflow: none;
+    scrollbar-width: none;
+}
+.tag-list::-webkit-scrollbar{
+    display: none;
+}
+
+/* タグボタンの見た目 */
+.tag-button {
+    background: none;
+    border: none;
+    font-size: 15px;
+    font-weight: bold;
+    color: #888888;
+    cursor: pointer;
+    padding: 0 0 4px 0;
+}
+
+/* 選択中のタグを黒っぽくし、アンダーラインを引く */
+.tag-button.active {
+    color: #000000;
+    border-bottom: 2px solid #000000;
+}   
+
+/*　投稿ごとのタグエリア */
+.post-tags {
+    display: flex;
+    flex-wrap: wrap; /* タグが複数行になる場合に折り返す */
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.post-tag {
+    font-size: 13px;
+    color: #0056b3; /*　青っぽくして目立たせる */
+    cursor: pointer;
+}
+
+/*　投稿ごとの画像エリア */
+.post-card {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #eeeeee;
+    text-align: left;
+}
+
+.post-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.user-icon {
+    width: 32px;
+    height: 32px;
+    background-color: #d9d9d9;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.user-name {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.post-image-placeholder {
+    width: 100%;
+    aspect-ratio: 4 / 3; /* 4:3のアスペクト比を維持 */
+    background-color: #d9d9d9d9;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.post-acttions {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 8px; 
+}
+
+.action-item{
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.post-text{
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+/* 引っ張って更新のインジケーター */
+.refresh-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #888888;
+    font-size: 13px;
+    font-weight: bold;
+    overflow: hidden; /*高さが０の時は何も表示しない*/
+    background-color: #fafafa;
+}
+
+
+
+/* 検索画面のデザイン */
+
+
+
+/* 検索画面の余白設定 */
+.sns-search-container {
+    padding-top: 24px;
+}
+
+/* 検索バー */
+.search-input-dummy {
+    background-color: #f0f0f0;
+    color: #888888;
+    padding: 10px 16px;
+    border-radius: 8px; /* 角を丸くする */
+    font-size: 14px;
+}
+
+/* カテゴリセクション */
+.search-category-section {
+    margin-bottom: 24px;
+}
+
+.category-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 12px;
+    text-align: left;
+}
+
+/* 横スクロールの設定 */
+.horizontal-scroll-list {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto; /* 横スクロールを有効にする */
+
+    /* スクロールバーを見えなくする*/
+    -ms-text-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* 正方形の画像プレースホルダー */
+.category-search-image{
+    width: 120px;
+    height: 120px;
+    background-color: #d9d9d9;
+    flex-shrink: 0;
+    border-radius: 4px;
+}
+
+
+
+/*　投稿作成画面のデザイン */
+
+
+
+/*投稿画面の設定*/
+.sns-create-content {
+    padding: 0;
+    background-color: #ffffff;
+}
+
+.create-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.create-cancel {
+    color: #888888;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.create-title {
+    font-size: 16px;
+    margin: 0;
+}
+
+.create-post-btn {
+    background-color: #000000;
+    color: #ffffff;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.create-textarea {
+    width: 100%;
+    border: none;
+    padding: 16px;
+    font-size: 16px;
+    resize: none; /* ユーザーによるリサイズを禁止 */
+    outline: none; /* フォーカス時のアウトラインを消す */
+    font-family: inherit; /* フォントを親要素と同じにする */
+    box-sizing: border-box; /* パディングを含めたサイズ計算にする */
+}
+
+.create-image-add {
+    margin: 0 16px;
+    height: 12px;
+    background-color: #f8f9fa;
+    border: 1px dashed #cccccc;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #888888;
+    cursor: pointer;
+}
+
+.create-image-add .add-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+
+
+
+/* メッセージ画面のデザイン */
+
+
+
+/* メッセージ画面の設定 */
+.sns-inbox-content {
+    padding: 0;
+}
+
+.inbox-page-title {
+    font-size: 18px;
+    text-align: center;
+    padding: 16px 0;
+    margin: 0;
+    background-color: #ffffff;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.message-item {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid #eeeeee;
+    cursor: pointer;
+    background-color: #ffffff;
+}
+
+.message-user-icon {
+    width: 50px;
+    height: 50px;
+    background-color: #d9d9d9;
+    border-radius: 50%;
+    margin-right: 16px;
+    flex-shrink: 0;
+}
+
+.message-info {
+    flex: 1;
+    overflow: hidden; /* テキストがはみ出る場合に隠す */
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.message-user-name {
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.message-time {
+    font-size: 12px;
+    color: #888888;
+}
+
+.message-preview {
+    margin: 0;
+    font-size: 14px;
+    color: #555555;
+    white-space: nowrap; /* テキストを1行にする */
+    overflow: hidden; /* はみ出たテキストを隠す */
+    text-overflow: ellipsis; /* はみ出た部分を「...」で表示する */
+}
+
+/* メッセージがないときのプレースホルダーテキスト */
+.inbox-placeholder {
+    text-align: center;
+    color: #888888;
+    padding: 80px 20px;
+    font-size: 15px;
+    margin: 0;
+}
+
+
+
+/* 設定画面のデザイン */
+
+
+
+/* 設定項目のスタイル */
+.sns-settings-content {
+    background-color: #f8f9fa;
+    padding: 0; /* 余白をなくす */
+    padding-bottom: 80px;
+}
+
+.settings-page-title {
+    font-size: 18px;
+    text-align: center;
+    padding: 16px 0;
+    margin: 0;
+    background-color: #ffffff;
+    border-bottom: 1px solid #eeeeee;
+}
+
+/*　プロフィール設定 */
+.settings-profile-section {
+    display: flex;
+    align-items: center;
+    padding: 24px 16px;
+    background-color: #ffffff;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.settings-user-icon {
+    width: 60px;
+    height: 60px;
+    background-color: #d9d9d9;
+    border-radius: 50%;
+    margin-right: 16px;
+}
+
+.settings-user-info {
+    flex: 1;
+}
+
+.settings-user-info h3 {
+    margin: 0 0 4px 0;
+    font-size : 18px;
+}
+
+.settings-user-info p {
+    margin: 0;
+    color: #888888;
+    font-size: 14px;
+}
+
+.edit-profile-btn {
+    margin: 8px 16px;
+    background-color: #eeeeee;
+    border: none;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* 設定グループ(アプリ設定・アカウント設定) */
+.settings-group {
+    background-color: #ffffff;
+    margin-bottom: 16px;
+    border-top: 1px solid #eeeeee;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.settings-group-title {
+    margin: 0;
+    padding: 12px 16px 8px;
+    font-size: 12px;
+    color: #888888;
+    background-color: #f8f9fa;
+}
+
+/* 各設定項目 */
+.settings-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid #eeeeee;
+    cursor: pointer;
+}
+
+/* 最後の項目は下線を消す */
+.settings-list-item:last-child {
+    border-bottom: none;
+}
+
+.item-left {
+    display: flex;
+    align-items: center;
+    font-size: 15px;
+}
+
+.item-icon {
+    margin-right: 12px;
+    font-size: 18px;
+}
+
+.item-arrow {
+    color: #cccccc;
+    font-weight: bold;
+}
+
+.text-red {
+    color: #e0245e;
+}
+
+/* iOSのスイッチ風トグルボタン */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 28px;
+}
+.toggle-switch input {opacity: 0; width: 0; height: 0;}
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ccc;
+    border-radius: 34px;
+    transition: .4s;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    border-radius: 50%;
+    transition: .4s;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background-color: #4caf50;
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(22px);
+}
+
+
+
+/* ダークモードのスタイル */
+.sns-container.dark-mode {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+.sns-container.dark-mode .sns-header,
+.sns-container.dark-mode .sns-bottom-nav,
+.sns-container.dark-mode .sns-settings-content,
+.sns-container.dark-mode .settings-profile-section,
+.sns-container.dark-mode .settings-group,
+.sns-container.dark-mode .settings-page-title {
+  background-color: #121212;
+  border-color: #222222;
+  color: #ffffff;
+}
+
+.sns-container.dark-mode .post-card,
+.sns-container.dark-mode .settings-list-item {
+  border-color: #222222;
+}
+
+.sns-container.dark-mode .tag-button,
+.sns-container.dark-mode .search-input-dummy,
+.sns-container.dark-mode .edit-profile-btn {
+  background-color: #333333;
+  color: #ffffff;
+}
+
+.sns-container.dark-mode .tag-button.active {
+  color: #ffffff;
+  border-bottom: 2px solid #ffffff;
+}
+
+.sns-container.dark-mode .refresh-indicator,
+.sns-container.dark-mode .settings-group-title {
+  background-color: #000000;
+  color: #aaaaaa;
+}

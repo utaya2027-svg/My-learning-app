@@ -1,0 +1,130 @@
+/* アプリ全体の大枠を定義するCSSファイル */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f2f5;
+    padding: 20px;
+}
+
+/* 中央のログインフォームのスタイル */
+.login-box {
+    background-color: white;
+    padding: 40px 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.login-title {
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #1a1a1a;
+}
+
+.login-subtitle {
+    font-size: 16px;
+    color: #666666;
+    margin-bottom: 30px;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.login-input {
+    padding: 14px;
+    border: 1px solid #cccccc;
+    border-radius: 8px;
+    font-size: 16px;
+    outline: none;
+    background-color: #fafafa;
+    transition: border-color 0.2s;
+}
+
+.login-input:focus {
+    border-color: #000000;
+    background-color: #ffffff;
+}
+
+.login-submit-btn {
+    background-color: #000000;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 16px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background-color 0.2s;
+}
+
+.login-submit-btn:hover {
+    background-color: #333333;
+}
+
+.login-dviver {
+    margin: 24px 0;
+    display: flex;
+    align-items: center;
+    color: #999999;
+}
+
+.login-dviver::before,
+.login-dviver::after {
+    content: "";
+    flex: 1;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.login-dviver span {
+    padding: 0 10px;
+    font-size: 14px;
+}
+
+.gooogle-login-btn {
+    background-color: #ffffff;
+    color: #333333;
+    border: 1px solid #dddddd;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    transition: background-color 0.2s;
+}
+
+.gooogle-login-btn:hover {
+    background-color: #f8f9fa;
+}
+
+.google-icon {
+    font-weight: bold;
+    font-size: 18px;
+    color: #ea4335;
+}
+
+.login-toglle-text {
+    margin-top: 30px;
+    font-size: 14px;
+    color: #666666;
+}
+
+.login-toggle-link {
+    color: #000000;
+    cursor: pointer;
+    margin-left: 8px;
+    font-weight: bold;
+    text-decoration: underline;
+}
