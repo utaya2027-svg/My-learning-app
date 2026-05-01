@@ -1,16 +1,91 @@
-# React + Vite
+# SNSアプリ 開発ログ・実装要件まとめ
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## 🚀 開発環境・技術スタック
+- **Frontend**: React (Vite)
+- **Backend/BaaS**: Firebase (Authentication, Firestore)
+- **Media Storage**: Cloudinary
+- **Styling**: プレーンCSS (モバイルファースト・Flexbox/CSS Grid活用)
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## ✨ 実装機能一覧 (Features)
 
-## React Compiler
+### 1. 認証・セキュリティ設定
+- Firebase Authenticationを用いたユーザー登録・ログイン機能。
+- 環境変数（`.env.local`）を用いたAPIキー等の機密情報保護。
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 2. UI/UX・レイアウト設計
+- X（旧Twitter）風の洗練されたUIの構築。
+- タブナビゲーション（ホーム、検索、投稿、受信箱、設定）の状態管理と画面切り替え。
+- アプリ全体を画面中央に配置するレスポンシブなCSS設計。
+- 擬似的なPull-to-Refresh（引っ張って更新）UIの実装。
+- ダークモード切替のトグル実装（設定画面）。
 
-## Expanding the ESLint configuration
+### 3. タイムライン（ホーム画面）
+- Firestoreからのデータリアルタイム同期（`onSnapshot`）。
+- 投稿の新しい順（降順）ソート表示。
+- 画像枚数（1〜4枚）に応じてレイアウトが動的に変わるCSS Gridレイアウトの適用。
+- いいね機能（トグル式・Firestoreの配列操作 `arrayUnion` / `arrayRemove` を活用）。
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 4. コメント機能
+- ボトムシート（画面下部からせり上がるUI）でのコメント一覧表示。
+- コメントの追加とリアルタイム反映。
+- 画面外（黒いオーバーレイ部分）タップによるモーダルクローズ機能。
+
+### 5. 投稿機能・メディア管理 (マルチクラウド構成)
+- テキストおよび画像/動画の同時投稿機能。
+- Firebase Storageの代替としてCloudinaryを導入し、セキュアなメディア管理を構築。
+- フロントエンドでのバリデーション（最大4枚、1ファイル200MB上限）。
+- 画像選択時のローカルプレビュー表示および削除機能。
+- Cloudinaryから取得したURLとテキストデータをFirestoreへ紐付けて保存。
+
+### 6. 投稿管理
+- 自分の投稿に対してのみ「削除ボタン」を表示する条件付きレンダリング。
+- `window.confirm` を用いた誤操作防止の確認ダイアログ実装。
+- Firestoreドキュメントの削除処理（`deleteDoc`）。
+
+---
+
+## 🐛 発生したバグと解決の軌跡 (Troubleshooting History)
+
+### 【フェーズ1：Firebase初期設定・環境構築】
+1. **データベース未検出エラー (Database not found)**
+   - **[原因]** Firebaseプロジェクト生成時の内部遅延、またはロケーション設定の問題。
+   - **[解決]** 東京リージョン（`asia-northeast1`）でプロジェクトを新規作成し、テストモードで再設定して解決。
+2. **環境変数の不一致エラー**
+   - **[原因]** `.env.local` 内の `MESSAGING_SENDER_ID` と `APP_ID` の値の入れ替わり。
+   - **[解決]** Firebaseコンソールの設定値を正確に反映し、Viteのローカルサーバーを再起動して解決。
+3. **認証エラー (auth/configuration-not-found)**
+   - **[原因]** Firebase Authenticationのログインプロバイダが有効になっていなかった。
+   - **[解決]** コンソールから「メール/パスワード」認証を有効化。
+
+### 【フェーズ2：ロジック・UI実装】
+4. **投稿処理が発火しない (JavaScript構文ミス)**
+   - **[原因]** `if (!postText.trim())` に対する `{}` ブロックの欠落。
+   - **[解決]** 波括弧を追加し、早期リターンのスコープを修正。
+5. **UIの状態残留**
+   - **[原因]** 投稿キャンセル時に、State（入力テキスト）をリセットしていなかった。
+   - **[解決]** キャンセルボタンの `onClick` 時に `setPostText("")` を実行するよう修正。
+6. **レイアウトの左寄り崩れとボトムシートの破綻**
+   - **[原因]** Viteの初期CSSの干渉と、`position: fixed` による全画面基準の広がり。
+   - **[解決]** 初期CSSをクリーンアップし、親要素に Flexbox を指定して中央寄せ。ボトムシートを `position: absolute` に変更し、枠内に収めるよう修正。
+7. **コメントボトムシートが表示されない**
+   - **[原因]** 即時実行関数 (IIFE) を定義した際、末尾の実行用 `()` が抜けていた。
+   - **[解決]** `(() => { ... })()` の正しい構文に修正。
+
+### 【フェーズ3：Cloudinary連携・画像投稿】
+8. **ReactインラインCSSの構文エラー (Transform failed)**
+   - **[原因]** style属性内で `=` を使用（例: `display = "grid"`）。
+   - **[解決]** オブジェクト記法の `:` に修正。
+9. **モジュールの重複インポート**
+   - **[原因]** `deleteDoc` を重複して `import` していた。
+   - **[解決]** 重複行を削除。
+10. **画像プレビュー時の画面クラッシュ (index is not defined)**
+    - **[原因]** `map` 関数の引数名のタイポ（`inbex`）。
+    - **[解決]** 正しく `index` に修正し、`key` プロパティへ適切に渡す。
+11. **Cloudinaryアップロード時のエラー (file is not defined)**
+    - **[原因]** `map` 内のコールバック関数で `file` 引数を受け取り忘れていた。
+    - **[解決]** 引数に `(file)` を明示して解決。
+12. **削除ボタン押下時の意図しない投稿処理**
+    - **[原因]** 削除ボタンの `onClick` に、投稿用の関数 `handlePostSubmit` を誤って指定していた。
+    - **[解決]** 削除用の関数 `handleDeletePost` に変更し、アロー関数でラップして即時実行を防止。
